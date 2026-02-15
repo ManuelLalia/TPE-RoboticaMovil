@@ -50,7 +50,7 @@ end
 %% Crear sensor lidar en simulador
 lidar = LidarSensor;
 lidar.sensorOffset = [0,0];     % Posicion del sensor en el robot (asumiendo mundo 2D)
-scaleFactor = 5;                %decimar lecturas de lidar acelera el algoritmo
+scaleFactor = 30;                %decimar lecturas de lidar acelera el algoritmo
 num_scans = 513/scaleFactor;
 hokuyo_step_a = deg2rad(-90);
 hokuyo_step_c = deg2rad(90);
@@ -83,7 +83,9 @@ pose = zeros(3,numel(tVec));    % Inicializar matriz de pose
 pose(:,1) = initPose;
 
 % Inicializar Aca
-N_particles = 1000;
+state = "Localization";
+n_iter = 0;
+N_particles = 400;
 particles = localization.initialize_particles(map, N_particles);
 
 cuidado = false;
@@ -181,8 +183,10 @@ for idx = 2:numel(tVec)
     % hacer algo con la medicion del lidar (ranges) y con el estado
     % actual de la odometria ( pose(:,idx) ) que se utilizará en la
     % proxima iteración para la generacion de comandos de velocidad
-
-    particles = localization.main_loop(map, particles, v_cmd, w_cmd, ranges, lidar.scanAngles, sampleTime);
+    
+    [particles, state] = localization.main_loop(map, particles, v_cmd, w_cmd, ranges, lidar.scanAngles, sampleTime, n_iter, state);
+    n_iter = n_iter + 1;
+    disp(state);
     
     index = find(isnan(ranges));
     if max(ranges) < 0.5 || min(ranges) < 0.1

@@ -6,18 +6,20 @@ N_particles = size(particles,1);
 
 % Calcular numero efectivo
 N_eff = 1 / sum(weights.^2);
-disp(N_eff);
 
-threshold = 0.5 * N_particles;
+threshold = 0.3 * N_particles;
 
 if N_eff < threshold
-    new_particles = zeros(size(particles));
-    
+    if N_particles > 150
+        N_particles_new = floor(N_particles/3);
+        new_particles = zeros(N_particles_new, 3);
+    else
+        new_particles = zeros(size();
     c = cumsum(weights);
     u = rand() / N_particles;
 
     i = 1;
-    for j = 1:N_particles
+    for j = 1:N_particles_new
         while u > c(i)
             i = i + 1;
         end

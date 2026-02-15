@@ -1,51 +1,51 @@
-function weights = measurement_model(particles, ranges, angles, map, distance_map)
+function weights = measurement_model(particles, ranges, angles, map, state)
 %MEASUREMENT_MODEL Summary of this function goes here
 %   Detailed explanation goes here
+max_range = 5;
 
-N_particles = size(particles, 1);
-N_rays = length(ranges);
-
-idx_valid = ~isnan(ranges);
-ranges_valid = ranges(idx_valid);
-angles_valid = angles(idx_valid);
-
-x_rays = particles(:,1) + cos(particles(:,3) + angles_valid) .* ranges_valid';
-y_rays = particles(:,2) + sin(particles(:,3) + angles_valid) .* ranges_valid';
-
-dist_matrix = inf(N_particles, N_rays);
-for i=1:N_particles
-    occ = getOccupancy(map, particles(i,1:2));
-    if occ < 0.195
-        xi = x_rays(i,:);
-        yi = y_rays(i,:);
-        index = world2grid(map, [xi', yi']);
-
-        row = index(:, 1);
-        col = index(:, 2);
-
-        valid_rows = row >= 1 & row <= map.GridSize(1);
-        valid_cols = col >= 1 & col <= map.GridSize(2);
-        not_nan = ~isnan(row) & ~isnan(col);
-        valid_mask = valid_rows & valid_cols & not_nan;
-
-        linear_idx = sub2ind(size(distance_map), row(valid_mask), col(valid_mask));
-        dist_matrix(i, valid_mask) = distance_map(linear_idx);
-    end
+if state =="Localization"
+    sigma = 0.4;
+else
+    sigma = 0.2;
 end
 
-sigma = 0.2;
+N_particles = size(particles,1);
+N_rays = length(angles);
 
-D = dist_matrix;
-D(~isfinite(D)) = 0;
+ranges(isnan(ranges)) = max_range;
 
-log_weights = -0.5 * sum((D/sigma).^2, 2);
+log_w = zeros(N_particles,1);
 
-disp(aux);
+for i = 1:N_particles
+    
+    pose = particles(i,:);  % [x y theta]
+    
+    % Obtener puntos de intersección en mundo
+    intersectionPts = rayIntersection(map, pose, angles, max_range);
+    % intersectionPts es Kx2
+    
+    % Inicializar predicción con maxRange
+    ranges_hat = max_range * ones(N_rays,1);
+    
+    % Detectar rayos que sí impactaron
+    valid = ~isnan(intersectionPts(:,1));
+    
+    if any(valid)
+        dx = intersectionPts(valid,1) - pose(1);
+        dy = intersectionPts(valid,2) - pose(2);
+        
+        ranges_hat(valid) = sqrt(dx.^2 + dy.^2);
+    end
+    
+    % Modelo gaussiano
+    error = ranges - ranges_hat;
+    log_w(i) = -0.5 * mean((error.^2) / sigma^2);
+    
+end
 
-log_weights = log_weights - max(log_weights);
-weights = exp(log_weights);
-
+% Normalización numéricamente estable
+log_w = log_w - max(log_w);
+weights = exp(log_w);
 weights = weights / sum(weights);
 
 end
-
