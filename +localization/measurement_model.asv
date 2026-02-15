@@ -33,18 +33,8 @@ for i=1:N_particles
     end
 end
 
-sigma = 0.2;
-
-D = dist_matrix;
-D(~isfinite(D)) = 0;
-
-log_weights = -0.5 * sum((D/sigma).^2, 2);
-
-disp(aux);
-
-log_weights = log_weights - max(log_weights);
-weights = exp(log_weights);
-
+sigma = 0.05;
+weights = sum(exp(-0.5 * (dist_matrix/sigma).^2), 2);
 weights = weights / sum(weights);
 
 end
