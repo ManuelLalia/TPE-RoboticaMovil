@@ -50,7 +50,7 @@ end
 %% Crear sensor lidar en simulador
 lidar = LidarSensor;
 lidar.sensorOffset = [0,0];     % Posicion del sensor en el robot (asumiendo mundo 2D)
-scaleFactor = 30;                %decimar lecturas de lidar acelera el algoritmo
+scaleFactor = 3; %19                %decimar lecturas de lidar acelera el algoritmo
 num_scans = 513/scaleFactor;
 hokuyo_step_a = deg2rad(-90);
 hokuyo_step_c = deg2rad(90);
@@ -67,9 +67,9 @@ attachLidarSensor(viz,lidar);
 
 simulationDuration = 60;         % Duracion total [s]
 sampleTime = 0.1;                   % Sample time [s]
-initPose = [18; 15; 0];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
+initPose = [16; 16; pi];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
                                     %  probar iniciar el robot en distintos lugares                                  
-% initPose = [10; 17; deg2rad(-70)];                                  
+% initPose = [10; 17; deg2rad(90)];                                  
 % Inicializar vectores de tiempo:1010
 tVec = 0:sampleTime:simulationDuration;         % Vector de Tiempo para duracion total
 
@@ -81,24 +81,32 @@ tVec = 0:sampleTime:simulationDuration;         % Vector de Tiempo para duracion
 
 v_cmd = 0;
 w_cmd = 0;
-move_count = 0;
 
 pose = zeros(3,numel(tVec));    % Inicializar matriz de pose
 pose(:,1) = initPose;
+move_count = 0;
 
 % Inicializar Aca
-state = "Localization";
-n_iter = 0;
+desafio = 2;
+if desafio == 1
+    state = "Localization";
+    n_iter = 0;
 
-path_obj = [12.5, 15];
-path = [0, 0];
+    path_obj = [12.5, 15];
+    path = [0, 0];
 
-N_particles = 400;
-particles = localization.initialize_particles(map, N_particles);
+    N_particles = 400;
+    particles = localization.initialize_particles(map, N_particles);
+else
+    maxRange = 5;
+    mapResolution = 10; % celdas por metro
 
-cuidado = false;
-ang_obj = 0;
-w_cmd_ant = 0;
+    slamAlg = lidarSLAM(mapResolution, maxRange);
+end
+
+% cuidado = false;
+% ang_obj = 0;
+% w_cmd_ant = 0;
 
 % Fin Inicializar Aca
 
@@ -195,17 +203,38 @@ for idx = 2:numel(tVec)
     % proxima iteración para la generacion de comandos de velocidad
     
     disp('--------------------------')
-    disp(w_cmd);
-    [mean_pose, particles, state] = localization.main_loop(map, particles, v_cmd, w_cmd, ranges(1:2:end), lidar.scanAngles(1:2:end), sampleTime, n_iter, state);
-    n_iter = n_iter + 1;
-    disp(state);
-    
-    if state == "FindObjetive"
-        path = planning.a_star(map, mean_pose, path_obj);
-        state = "FollowPath";
+    if desafio == 1
+    %     [mean_pose, particles, state] = localization.main_loop(map, particles, v_cmd, w_cmd, ranges(1:3:end), lidar.scanAngles(1:3:end), sampleTime, n_iter, state);
+        n_iter = n_iter + 1;
+        disp(state);
+
+        if state == "FindObjetive"
+            path = planning.a_star(map, mean_pose, path_obj);
+            state = "FollowPath";
+        end
+
+        mean_pose = [0,0,0];
+        [v_cmd, w_cmd, state, move_count] = movement.main_movement(mean_pose, state, ranges, lidar.scanAngles, move_count, path, path_obj);
+    else
+        delta_pose = pose(:,idx)-pose(:,idx-1);
+        
+        scan = lidarScan(ranges, lidar.scanAngles);
+        [isScanAccepted, loopClosureInfo, optimizationInfo] = addScan(slamAlg, scan, delta_pose);
+        
+        if isScanAccepted
+            figure(1);
+            show(slamAlg);
+            drawnow;
+        end
+        
+        [scans, poses] = scansAndPoses(slamAlg);
+        map = buildMap(scans, poses, mapResolution, maxRange);
+        figure(2);
+        show(map);
+        
+        [v_cmd, w_cmd, move_count] = movement.reactive(pose(:,idx), ranges, lidar.scanAngles, move_count);
+
     end
-    
-    [v_cmd, w_cmd, state, move_count] = movement.main_movement(mean_pose, state, ranges, lidar.scanAngles, move_count, path, path_obj);
     
     
     

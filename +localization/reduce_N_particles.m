@@ -14,12 +14,12 @@ disp('Calculo varianzas');
 disp(var_xy);
 disp(var_theta);
 
-if var_xy<10 && var_theta<10 && N_particles > N_mid
+if var_xy<6 && var_theta<4 && N_particles > N_mid
     N_particles_new = N_mid;
     new_particles = particles(1:N_particles_new,:);
     state = "Tracking";
 else
-    if var_xy<0.05 && var_theta<0.05 && N_particles > N_low
+    if var_xy<0.2 && var_theta<0.02 && N_particles > N_low
         N_particles_new = N_low;
         new_particles = particles(1:N_particles_new,:);
         state = "FindObjetive";

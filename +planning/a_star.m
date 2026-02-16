@@ -8,7 +8,7 @@ start = world2grid(map, start);
 
 obj = world2grid(map, obj);
 
-inflate(map, 0.15)
+inflate(map, 0.22)
 planner = plannerAStarGrid(map);
 path = plan(planner, start, obj);
 

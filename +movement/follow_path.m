@@ -1,9 +1,10 @@
 function [v_cmd, w_cmd, state] = follow_path(pose, path, path_obj, state)
 %FOLLOW_PATH Summary of this function goes here
 %   Detailed explanation goes here
+
 controller = controllerPurePursuit;
 controller.Waypoints = path;
-controller.LookaheadDistance = 0.5;
+controller.LookaheadDistance = 1;
 controller.DesiredLinearVelocity = 0.15;
 controller.MaxAngularVelocity = 0.5;
 

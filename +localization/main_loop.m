@@ -2,7 +2,7 @@ function [mean_pose, new_particles, state] = main_loop(map, particles, v_cmd, w_
 %MAIN_LOOP Summary of this function goes here
 %   Detailed explanation goes here
 
-new_particles = localization.particle_filter(map, particles, v_cmd, w_cmd, ranges, angles, Ts, n_iter, state);
+[new_particles, mean_pose] = localization.particle_filter(map, particles, v_cmd, w_cmd, ranges, angles, Ts, n_iter, state);
 
 % disp(n_iter);
 N = size(new_particles, 1);
@@ -10,8 +10,6 @@ disp('N_particles');
 disp(N);
 
 [new_particles, state] = localization.reduce_N_particles(new_particles, state);
-
-mean_pose = mean(new_particles,1);
 
 figure(2); clf;
 show(map); hold on;

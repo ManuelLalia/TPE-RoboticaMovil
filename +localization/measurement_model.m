@@ -4,9 +4,9 @@ function weights = measurement_model(particles, ranges, angles, map, state)
 max_range = 5;
 
 if state =="Localization"
-    sigma = 0.5;
+    sigma = 0.65;
 else
-    sigma = 0.2;
+    sigma = 0.4;
 end
 
 N_particles = size(particles,1);
