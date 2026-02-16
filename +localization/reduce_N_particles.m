@@ -22,6 +22,7 @@ else
     if var_xy<0.05 && var_theta<0.05 && N_particles > N_low
         N_particles_new = N_low;
         new_particles = particles(1:N_particles_new,:);
+        state = "FindObjetive";
     else
         new_particles = particles;
     end

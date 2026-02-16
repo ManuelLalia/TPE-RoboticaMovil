@@ -6,7 +6,6 @@ N_particles = size(particles,1);
 
 % Calcular numero efectivo
 N_eff = 1 / sum(weights.^2);
-disp(N_eff);
 
 threshold = 0.5 * N_particles;
 

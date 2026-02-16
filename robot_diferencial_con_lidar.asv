@@ -67,9 +67,9 @@ attachLidarSensor(viz,lidar);
 
 simulationDuration = 60;         % Duracion total [s]
 sampleTime = 0.1;                   % Sample time [s]
-initPose = [18; 15; 0];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
+% % initPose = [18; 15; 0];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
                                     %  probar iniciar el robot en distintos lugares                                  
-% initPose = [10; 17; deg2rad(-70)];                                  
+initPose = [10; 17; deg2rad(-70)];                                  
 % Inicializar vectores de tiempo:1010
 tVec = 0:sampleTime:simulationDuration;         % Vector de Tiempo para duracion total
 

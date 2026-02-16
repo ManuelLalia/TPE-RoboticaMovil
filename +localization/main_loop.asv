@@ -11,12 +11,14 @@ disp(N);
 
 [new_particles, state] = localization.reduce_N_particles(new_particles, state);
 
-mean_pose = mean(poses,1);
+mean_pose = mean(new_particles,1);
 
 figure(2); clf;
 show(map); hold on;
 plot(new_particles(:,1), new_particles(:,2), 'b.'); axis equal;
-quiver(
+
+
+q = quiver(mean_pose(1), mean_pose(2), cos(mean_pose(3)), sin(mean_pose(3)), 'Linewidth', 1);
 title('Distribución inicial de partículas');
 
 % disp(pose_var);

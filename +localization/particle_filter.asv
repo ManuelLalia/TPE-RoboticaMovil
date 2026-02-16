@@ -9,8 +9,8 @@ new_particles = localization.sample_motion_model(particles, v_cmd, w_cmd, Ts, st
 
 if mod(n_iter,2)==0
     weights = localization.measurement_model(new_particles, ranges, angles, map, state);
-    disp('max weight');
-    disp(max(weights));
+    disp(max
+    disp(weights);
     new_particles = localization.resample(new_particles, weights);
 end
 
