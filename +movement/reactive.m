@@ -34,8 +34,8 @@ switch state
                 w_cmd = 0.2;
                 move_count = move_count + 1;
             else
-                v_cmd = 0.15;
-                w_cmd = 0;
+                v_cmd = 0.1;
+                w_cmd = 0.2;
                 move_count = 120;
             end
         end

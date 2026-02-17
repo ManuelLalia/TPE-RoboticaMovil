@@ -65,9 +65,9 @@ attachLidarSensor(viz,lidar);
 
 %% Parametros de la Simulacion
 
-simulationDuration = 60;         % Duracion total [s]
+simulationDuration = 90;         % Duracion total [s]
 sampleTime = 0.1;                   % Sample time [s]
-initPose = [5.5; 5; pi/4];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
+initPose = [14; 14; 0];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
                                     %  probar iniciar el robot en distintos lugares                                  
 % initPose = [10; 17; deg2rad(-90)];                                  
 % Inicializar vectores de tiempo:1010
@@ -98,7 +98,6 @@ if desafio == 1
     N_particles = 400;
     particles = localization.initialize_particles(map, N_particles);
 else
-    move_count = 120;
     fig1 = figure(100);
     ax1 = axes(fig1);
     fig2 = figure(200);
@@ -107,11 +106,10 @@ else
     mapResolution = 10; % celdas por metro
 
     slamAlg = lidarSLAM(mapResolution, maxRange);
-    slamAlg.LoopClosureThreshold = 10;
+    slamAlg.LoopClosureThreshold = 100;
     slamAlg.LoopClosureSearchRadius = 8;
-%     slamAlg.ScanMatcher.MaxIterations = 100;
-%     slamAlg.ScanMatcher.ScoreThreshold = 0.3; 
-%     slamAlg.ScanMatcher.CorrespondenceRatio = 0.4;
+    slamAlg.ScanMatcher.MaxIterations = 100;
+    
 end
 
 % cuidado = false;
