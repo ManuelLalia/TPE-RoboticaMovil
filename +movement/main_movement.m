@@ -10,7 +10,7 @@ switch state
         [v_cmd, w_cmd, move_count] = movement.reactive(pose_est, ranges, angles, move_count);
         
     case "FollowPath"
-        movement_state = movement.check_surroundings(ranges, 300); % 300 para que no entre en "Giro360"
+        movement_state = movement.check_surroundings(ranges, 300, false); % 300 para que no entre en "Giro360"
         disp('Movement state');
         disp(movement_state);
         if movement_state == "Normal"

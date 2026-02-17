@@ -65,22 +65,15 @@ attachLidarSensor(viz,lidar);
 
 %% Parametros de la Simulacion
 
-simulationDuration = 180;         % Duracion total [s]
+simulationDuration = 60;         % Duracion total [s]
 sampleTime = 0.1;                   % Sample time [s]
-%initPose = [5.5; 5; pi/4];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
+initPose = [5.5; 5; pi/4];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
                                     %  probar iniciar el robot en distintos lugares                                  
-
-%initPose = [20; 12; pi/4];
-initPose = [14; 14; 3*pi/4]; % mirando a la puerta
-%initPose = [10; 17; deg2rad(-90)];                                  
+% initPose = [10; 17; deg2rad(-90)];                                  
 % Inicializar vectores de tiempo:1010
 tVec = 0:sampleTime:simulationDuration;         % Vector de Tiempo para duracion total
 
 %% generar comandosx a modo de ejemplo
-% vxRef = 0.1*ones(size(tVec));   % Velocidad lineal a ser comandada
-% wRef = zeros(size(tVec));       % Velocidad angular a ser comandada
-% wRef(tVec < 5) = -0.1;
-% wRef(tVec >=7.5) = 0.1;
 
 v_cmd = 0;
 w_cmd = 0;
@@ -100,25 +93,16 @@ if desafio == 1
 
     N_particles = 400;
     particles = localization.initialize_particles(map, N_particles);
-else
-    move_count = 120;
-    fig1 = figure(100);
-    ax1 = axes(fig1);
-    fig2 = figure(200);
-    ax2 = axes(fig2);
+else 
+    % desafio 2
     maxRange = 5;
-    mapResolution = 15; % celdas por metro
-    poseGuess = [0, 0, 0];
+    mapResolution = 10; % celdas por metro
 
-    slamAlg = lidarSLAM(mapResolution, maxRange);
-    slamAlg.LoopClosureThreshold = 210;
-    slamAlg.LoopClosureSearchRadius = 8;
+
+
+    
 
 end
-
-% cuidado = false;
-% ang_obj = 0;
-% w_cmd_ant = 0;
 
 % Fin Inicializar Aca
 
@@ -131,36 +115,9 @@ else
 end
 
 for idx = 2:numel(tVec)   
-
-    % Generar aqui criteriosamente velocidades lineales v_cmd y angulares w_cmd
-    % -0.5 <= v_cmd <= 0.5 and -4.25 <= w_cmd <= 4.25
-    % (mantener las velocidades bajas (v_cmd < 0.1) (w_cmd < 0.5) minimiza vibraciones y
-    % mejora las mediciones.   
-%     v_cmd = vxRef(idx-1);   % estas velocidades estan como ejemplo ...
-%     w_cmd = wRef(idx-1);    %      ... para que el robot haga algo.
     
-    %% COMPLETAR ACA:
-     % generar velocidades para este timestep
-%      w_cmd_ant = w_cmd;
-%      
-%      if cuidado
-%          v_cmd = 0.01;
-%          w_cmd = 0.3*ang_obj;
-%      else
-%          v_cmd = 0.1;
-%          w_cmd = 0.5*ang_obj;
-%          
-%          w_cmd = w_cmd + sign(w_cmd)*0.1 + sign(w_cmd_ant)*0.1;
-%      end
-%          
-%      w_cmd = max(min(w_cmd, 0.5), -0.5);
-     
-%     w_cmd = -0.4;
-%     v_cmd = 0.2;
-        
-     % fin del COMPLETAR ACA
-    
-    %% a partir de aca el robot real o el simulador ejecutan v_cmd y w_cmd:
+    % COMPLETAR ACA:
+    % a partir de aca el robot real o el simulador ejecutan v_cmd y w_cmd:
     
     if use_roomba       % para usar con el robot real
         
@@ -204,19 +161,18 @@ for idx = 2:numel(tVec)
             ranges(not_valid<=chance_de_medicion_no_valida)=NaN;
         end
     end
-    %%
+    
     % Aca el robot ya ejecutó las velocidades comandadas y devuelve en la
     % variable ranges la medicion del lidar para ser usada y
     % en la variable pose(:,idx) la odometría actual.
     
-    %% COMPLETAR ACA:
+    % COMPLETAR ACA:
     % hacer algo con la medicion del lidar (ranges) y con el estado
     % actual de la odometria ( pose(:,idx) ) que se utilizará en la
     % proxima iteración para la generacion de comandos de velocidad
     
     
     disp('--------------------------')
-
     if desafio == 1
     %     [mean_pose, particles, state] = localization.main_loop(map, particles, v_cmd, w_cmd, ranges(1:3:end), lidar.scanAngles(1:3:end), sampleTime, n_iter, state);
         n_iter = n_iter + 1;
@@ -230,50 +186,27 @@ for idx = 2:numel(tVec)
         mean_pose = [0,0,0];
         [v_cmd, w_cmd, state, move_count] = movement.main_movement(mean_pose, state, ranges, lidar.scanAngles, move_count, path, path_obj);
     else
-        num_scans = 15;
-        if idx <= num_scans
-            delta_pose = pose(:,idx)-pose(:,idx-1);
-        else
-            delta_pose = pose(:,idx)-pose(:,idx-num_scans);
-        end
-        scan = lidarScan(ranges, lidar.scanAngles);
-        if mod(idx,num_scans)==0
-            [isScanAccepted, loopClosureInfo, optimizationInfo] = addScan(slamAlg, scan, delta_pose);
-            %[isScanAccepted, loopClosureInfo, optimizationInfo] = addScan(slamAlg, scan);
-        end
-        [v_cmd, w_cmd, move_count] = movement.reactive_mapping(pose(:,idx), ranges, lidar.scanAngles, move_count);
+        % desafio 2
+        
+        % medir con el lidar
+
+
+        % predecir pose
+        
+        % guardar mapa
+        
+        % moverse
+        [v_cmd, w_cmd] = movement.reactive(0, ranges, 0, move_count);
+
+
+
+
     end
-
-
-
-%     index = find(isnan(ranges));
-%     if max(ranges) < 0.5 || min(ranges) < 0.1
-%         cuidado = true;
-%     else
-%         cuidado = false;
-%     end
-%     
-%     centro = floor(num_scans/2);
-%     N = floor(num_scans*0.1);
-%     if isempty(index)
-%         [max_range, idx_range] = max(ranges(centro-N:centro+N));
-%         ang_obj = lidar.scanAngles(idx_range);
-%     else
-%         angulos = lidar.scanAngles(index);
-%         [~, k] = min(abs(angulos));
-%         ang_obj = angulos(k);
-%     end        
-%         
-%     if ang_obj < 0.1
-%         [~,k] = min(ranges);
-%         ang_obj = ang_obj - sign(k-centro)*0.5;
-%     end
+    
     % Fin del COMPLETAR ACA
 
-    %%
     % actualizar visualizacion
     viz(pose(:,idx),ranges)
-
     waitfor(r);
 end
 
@@ -283,6 +216,6 @@ if desafio == 2
         drawnow;
     end
     [scans, poses] = scansAndPoses(slamAlg);
-    newMap = buildMap(scans, poses, mapResolution, maxRange);
-    show(newMap, 'Parent', ax2);
+    map = buildMap(scans, poses, mapResolution, maxRange);
+    show(map, 'Parent', ax2);
 end
