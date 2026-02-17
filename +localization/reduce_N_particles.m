@@ -19,7 +19,7 @@ if var_xy<6 && var_theta<4 && N_particles > N_mid
     new_particles = particles(1:N_particles_new,:);
     state = "Tracking";
 else
-    if var_xy<0.2 && var_theta<0.02 && N_particles > N_low
+    if var_xy<0.5 && var_theta<0.02 && N_particles > N_low
         N_particles_new = N_low;
         new_particles = particles(1:N_particles_new,:);
         state = "FindObjetive";

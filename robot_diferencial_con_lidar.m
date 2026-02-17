@@ -50,7 +50,7 @@ end
 %% Crear sensor lidar en simulador
 lidar = LidarSensor;
 lidar.sensorOffset = [0,0];     % Posicion del sensor en el robot (asumiendo mundo 2D)
-scaleFactor = 6; %19                %decimar lecturas de lidar acelera el algoritmo
+scaleFactor = 19; %19                %decimar lecturas de lidar acelera el algoritmo
 num_scans = 513/scaleFactor;
 hokuyo_step_a = deg2rad(-90);
 hokuyo_step_c = deg2rad(90);
@@ -67,9 +67,9 @@ attachLidarSensor(viz,lidar);
 
 simulationDuration = 60;         % Duracion total [s]
 sampleTime = 0.1;                   % Sample time [s]
-initPose = [5.5; 5; pi/4];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
+initPose = [30; 5.5; 3*pi/4];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
                                     %  probar iniciar el robot en distintos lugares                                  
-% initPose = [10; 17; deg2rad(-90)];                                  
+% initPose = [10; 17; deg2rad(90)];                                  
 % Inicializar vectores de tiempo:1010
 tVec = 0:sampleTime:simulationDuration;         % Vector de Tiempo para duracion total
 
@@ -95,7 +95,7 @@ if desafio == 1
     path_obj = [12.5, 15];
     path = [0, 0];
 
-    N_particles = 400;
+    N_particles = 1000;
     particles = localization.initialize_particles(map, N_particles);
 else
     move_count = 120;
@@ -214,7 +214,7 @@ for idx = 2:numel(tVec)
     
     disp('--------------------------')
     if desafio == 1
-    %     [mean_pose, particles, state] = localization.main_loop(map, particles, v_cmd, w_cmd, ranges(1:3:end), lidar.scanAngles(1:3:end), sampleTime, n_iter, state);
+        [mean_pose, particles, state] = localization.main_loop(map, particles, v_cmd, w_cmd, ranges(1:3:end), lidar.scanAngles(1:3:end), sampleTime, n_iter, state);
         n_iter = n_iter + 1;
         disp(state);
 
@@ -223,16 +223,32 @@ for idx = 2:numel(tVec)
             state = "FollowPath";
         end
 
-        mean_pose = [0,0,0];
         [v_cmd, w_cmd, state, move_count] = movement.main_movement(mean_pose, state, ranges, lidar.scanAngles, move_count, path, path_obj);
     else
         delta_pose = pose(:,idx)-pose(:,idx-1);
+        pose_prev = pose(:,idx-1);
+        pose_curr = pose(:,idx);
+
+        dx = pose_curr(1) - pose_prev(1);
+        dy = pose_curr(2) - pose_prev(2);
+
+        theta = pose_prev(3);
+
+        R = [cos(theta)  sin(theta);
+            -sin(theta)  cos(theta)];
+
+        delta_xy = R * [dx; dy];
+
+        delta_theta = wrapToPi(pose_curr(3) - pose_prev(3));
+
+        relPose = [delta_xy' delta_theta];
         
         scan = lidarScan(ranges, lidar.scanAngles);
-        [isScanAccepted, loopClosureInfo, optimizationInfo] = addScan(slamAlg, scan, delta_pose);
+        [isScanAccepted, loopClosureInfo, optimizationInfo] = addScan(slamAlg, scan, relPose);
         
         [v_cmd, w_cmd, move_count] = movement.reactive(pose(:,idx), ranges, lidar.scanAngles, move_count);
 
+        pcregistericp
     end
     
     
