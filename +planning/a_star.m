@@ -8,7 +8,29 @@ start = world2grid(map, start);
 
 obj = world2grid(map, obj);
 
-inflate(map, 0.22)
+%##################
+% occ = occupancyMatrix(map);
+% dist = bwdist(occ > 0.5);
+% lambda = 10;   % en celdas
+% cost = exp(-dist*2 / lambda);
+% map_cost = occupancyMap(cost);
+% figure(6);
+% show(map_cost);
+% planner = plannerAStarGrid(map_cost);
+%#############
+
+
+inflate(map, 0.15);
+occ = getOccupancy(map);
+if occ(start(1), start(2)) >= 0.65
+    disp('entre al if');
+    disp(start);
+    start = planning.find_nearest_free(map, start);
+    disp(start);
+end
+
+% figure(6);
+% show(map);
 planner = plannerAStarGrid(map);
 path = plan(planner, start, obj);
 

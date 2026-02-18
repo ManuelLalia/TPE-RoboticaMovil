@@ -2,9 +2,9 @@ function new_particles = sample_motion_model(particles, v, w, Ts, state)
 %SAMPLE_MOTION_MODEL Summary of this function goes here
 %   Detailed explanation goes here
 if state == "Localization"
-    noise = [0.25, 0.25, deg2rad(10)];
+    noise = [0.1, 0.1, deg2rad(4)];
 else
-    noise = [0.1, 0.1, deg2rad(1)];
+    noise = [0.08, 0.08, deg2rad(1)];
 end
 
 N_particles = size(particles, 1);

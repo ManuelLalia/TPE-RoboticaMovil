@@ -8,6 +8,9 @@ verMatlab= ver('MATLAB');       % en MATLAB2020a funciona bien, ajustado para R2
 simular_ruido_lidar = true;    %simula datos no validos del lidar real, probar si se la banca
 use_roomba=false;               % false para desarrollar usando el simulador, true para conectarse al robot real
 
+%% Número de desafío
+desafio = 2;
+
 %% Roomba
 if use_roomba   % si se usa el robot real, se inicializa la conexion    
     rosshutdown
@@ -50,7 +53,13 @@ end
 %% Crear sensor lidar en simulador
 lidar = LidarSensor;
 lidar.sensorOffset = [0,0];     % Posicion del sensor en el robot (asumiendo mundo 2D)
-scaleFactor = 19; %19                %decimar lecturas de lidar acelera el algoritmo
+
+if desafio == 1
+    scaleFactor = 19;                %decimar lecturas de lidar acelera el algoritmo
+else 
+    scaleFactor = 3;
+end
+
 num_scans = 513/scaleFactor;
 hokuyo_step_a = deg2rad(-90);
 hokuyo_step_c = deg2rad(90);
@@ -65,11 +74,16 @@ attachLidarSensor(viz,lidar);
 
 %% Parametros de la Simulacion
 
-simulationDuration = 60;         % Duracion total [s]
+simulationDuration = 180;         % Duracion total [s]
 sampleTime = 0.1;                   % Sample time [s]
-initPose = [30; 5.5; 3*pi/4];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
+% initPose = [14; 14; 3*pi/4];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
                                     %  probar iniciar el robot en distintos lugares                                  
-% initPose = [10; 17; deg2rad(90)];                                  
+% initPose = [10; 17; deg2rad(90)];
+initPose = [26; 9; 3*pi/4];
+% initPose = [21; 13; 3*pi/4]; %3/4
+% initPose = [21; 21; 5*pi/4]; %1/4
+% initPose = [27; 27; 3*pi/4]; %3/4
+% initPose = [9; 8; pi/4];
 % Inicializar vectores de tiempo:1010
 tVec = 0:sampleTime:simulationDuration;         % Vector de Tiempo para duracion total
 
@@ -87,7 +101,7 @@ pose(:,1) = initPose;
 move_count = 0;
 
 % Inicializar Aca
-desafio = 2;
+
 if desafio == 1
     state = "Localization";
     n_iter = 0;
@@ -95,23 +109,20 @@ if desafio == 1
     path_obj = [12.5, 15];
     path = [0, 0];
 
-    N_particles = 1000;
+    N_particles = 3000;
     particles = localization.initialize_particles(map, N_particles);
 else
-    move_count = 120;
+    move_count = 201;
     fig1 = figure(100);
     ax1 = axes(fig1);
     fig2 = figure(200);
     ax2 = axes(fig2);
     maxRange = 5;
-    mapResolution = 10; % celdas por metro
+    mapResolution = 15; % celdas por metro
 
     slamAlg = lidarSLAM(mapResolution, maxRange);
-    slamAlg.LoopClosureThreshold = 10;
+    slamAlg.LoopClosureThreshold = 210;
     slamAlg.LoopClosureSearchRadius = 8;
-%     slamAlg.ScanMatcher.MaxIterations = 100;
-%     slamAlg.ScanMatcher.ScoreThreshold = 0.3; 
-%     slamAlg.ScanMatcher.CorrespondenceRatio = 0.4;
 end
 
 % cuidado = false;
@@ -214,7 +225,7 @@ for idx = 2:numel(tVec)
     
     disp('--------------------------')
     if desafio == 1
-        [mean_pose, particles, state] = localization.main_loop(map, particles, v_cmd, w_cmd, ranges(1:3:end), lidar.scanAngles(1:3:end), sampleTime, n_iter, state);
+        [mean_pose, particles, state] = localization.main_loop(map, particles, v_cmd, w_cmd, ranges(1:6:end), lidar.scanAngles(1:6:end), sampleTime, n_iter, state);
         n_iter = n_iter + 1;
         disp(state);
 
@@ -225,30 +236,18 @@ for idx = 2:numel(tVec)
 
         [v_cmd, w_cmd, state, move_count] = movement.main_movement(mean_pose, state, ranges, lidar.scanAngles, move_count, path, path_obj);
     else
-        delta_pose = pose(:,idx)-pose(:,idx-1);
-        pose_prev = pose(:,idx-1);
-        pose_curr = pose(:,idx);
-
-        dx = pose_curr(1) - pose_prev(1);
-        dy = pose_curr(2) - pose_prev(2);
-
-        theta = pose_prev(3);
-
-        R = [cos(theta)  sin(theta);
-            -sin(theta)  cos(theta)];
-
-        delta_xy = R * [dx; dy];
-
-        delta_theta = wrapToPi(pose_curr(3) - pose_prev(3));
-
-        relPose = [delta_xy' delta_theta];
-        
+        num_scans = 15;
+        if idx <= num_scans
+            delta_pose = pose(:,idx)-pose(:,idx-1);
+        else
+            delta_pose = pose(:,idx)-pose(:,idx-num_scans);
+        end
         scan = lidarScan(ranges, lidar.scanAngles);
-        [isScanAccepted, loopClosureInfo, optimizationInfo] = addScan(slamAlg, scan, relPose);
-        
-        [v_cmd, w_cmd, move_count] = movement.reactive(pose(:,idx), ranges, lidar.scanAngles, move_count);
-
-        pcregistericp
+        if mod(idx,num_scans)==0
+            [isScanAccepted, loopClosureInfo, optimizationInfo] = addScan(slamAlg, scan, delta_pose);
+            %[isScanAccepted, loopClosureInfo, optimizationInfo] = addScan(slamAlg, scan);
+        end
+        [v_cmd, w_cmd, move_count] = movement.reactive_mapping(pose(:,idx), ranges, lidar.scanAngles, move_count);
     end
     
     
@@ -290,6 +289,6 @@ if desafio == 2
         drawnow;
     end
     [scans, poses] = scansAndPoses(slamAlg);
-    map = buildMap(scans, poses, mapResolution, maxRange);
-    show(map, 'Parent', ax2);
+    newMap = buildMap(scans, poses, mapResolution, maxRange);
+    show(newMap, 'Parent', ax2);
 end

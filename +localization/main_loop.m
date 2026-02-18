@@ -9,7 +9,7 @@ N = size(new_particles, 1);
 disp('N_particles');
 disp(N);
 
-[new_particles, state] = localization.reduce_N_particles(new_particles, state);
+[new_particles, state] = localization.reduce_N_particles(new_particles, state, map, n_iter);
 
 figure(2); clf;
 show(map); hold on;
