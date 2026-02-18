@@ -4,18 +4,25 @@ function [new_particles, mean_pose] = particle_filter(map, particles, v_cmd, w_c
 
 % Muevo las particulas según el modelo de movimiento
 new_particles = localization.sample_motion_model(particles, v_cmd, w_cmd, Ts, state);
-
 % distance_map = localization.create_distance_map(map);
 
-if mod(n_iter,2)==0
-    weights = localization.measurement_model(new_particles, ranges, angles, map, state);
-    disp('max weight');
-    disp(max(weights));
+
+% % cada N iteraciones se realiza ray casting para obtener pesos mas precisos
+% N = 10;
+% % if mod(n_iter, N)==0
+% if n_iter < N
+%     % pesos calculados con ray casting
+%     weights = localization.measurement_model(new_particles, ranges, angles, map, state);
+%     mean_pose = sum(new_particles .* weights,1);
+%     new_particles = localization.resample(new_particles, weights);
+% % else
+% %     mean_pose = mean(new_particles,1);
+% else
+%     % pesos calculados distance map
+    weights = localization.measurement_model_field(map, new_particles, ranges, angles);
     mean_pose = sum(new_particles .* weights,1);
     new_particles = localization.resample(new_particles, weights);
-else
-    mean_pose = mean(new_particles,1);
-end
+%end
 disp('mean_pose');
 disp(mean_pose);
 
