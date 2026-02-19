@@ -1,6 +1,9 @@
-function [new_particles, state] = reduce_N_particles(particles, state, map, n_iter)
-%REDUCE_N_PARTICLES Summary of this function goes here
-%   Detailed explanation goes here
+function [new_particles, state] = reduce_N_particles(particles, state)
+%REDUCE_N_PARTICLES Reduce el número de partículas para acelerar el
+%algoritmo y controla el estado de la localización
+%   Evalúa la varianza del conjunto de partículas y si esta cumple ciertos
+%   umbrales se reduce el total de partículas
+
 N_mid = 300;
 N_low = 100;
 
@@ -25,15 +28,7 @@ else
         state = "FindObjetive";
     else
         new_particles = particles;
-%         if var_xy > 65 && state == "Localization" && n_iter > 600
-%             epsilon = 0.01;
-%             N_new_particles = round(epsilon*N_particles);
-%             new_particles(1:N_new_particles, :) = localization.initialize_particles(map, N_new_particles);
-%         end
     end
 end
-
-
-
 end
 

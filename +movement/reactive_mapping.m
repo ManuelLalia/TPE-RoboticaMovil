@@ -1,6 +1,5 @@
-function [v_cmd, w_cmd, move_count]= reactive_mapping(pose_est, ranges, angles, move_count)
-%REACTIVE Summary of this function goes here
-%   Detailed explanation goes here
+function [v_cmd, w_cmd, move_count]= reactive_mapping(ranges, move_count)
+%REACTIVE Movimiento reactivo para el desafío de mapeo
 
 state = movement.check_surroundings(ranges, move_count, true);
 disp(state);

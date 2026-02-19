@@ -1,6 +1,7 @@
 function weights = measurement_model(particles, ranges, angles, map, state)
-%MEASUREMENT_MODEL Summary of this function goes here
-%   Detailed explanation goes here
+%MEASUREMENT_MODEL Calculo de pesos por Ray Casting
+%   Se dejó de usar por que era demasiado lento para funcionar en tiempo
+%   real
 max_range = 5;
 
 if state =="Localization"

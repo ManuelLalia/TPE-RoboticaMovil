@@ -1,6 +1,5 @@
-function [v_cmd, w_cmd, move_count]= reactive(pose_est, ranges, angles, move_count)
-%REACTIVE Summary of this function goes here
-%   Detailed explanation goes here
+function [v_cmd, w_cmd, move_count]= reactive(ranges, move_count)
+%REACTIVE Movimiento reactivo para evitar obstáculos
 
 state = movement.check_surroundings(ranges, move_count, false);
 disp(state);

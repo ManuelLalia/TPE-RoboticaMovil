@@ -1,13 +1,11 @@
 function [p_free] = find_nearest_free(map, p)
-%FIND_NEAREST_FREE Summary of this function goes here
-%   Detailed explanation goes here
-show(map);
+%FIND_NEAREST_FREE Se encuentra la celda libre más cercana dentro de un
+%radio de 50cm
+
 res = map.Resolution;
 radius = ceil(0.5 * res);   % 0.5 m de búsqueda inicial
 
-% grid = world2grid(map, p);
 occ  = occupancyMatrix(map);
-
 for r = 1:radius
     for dx = -r:r
         for dy = -r:r
@@ -19,15 +17,12 @@ for r = 1:radius
             end
 
             if occ(x,y) < 0.18
-%                 p_free = grid2world(map, [x y]);
                 p_free = [x y];
                 return;
             end
         end
     end
 end
-
-% fallback
 p_free = p;
 end
 

@@ -1,6 +1,5 @@
 function [particles] = initialize_particles(map, N_particles)
-%INITIALIZE_PARTICLES Summary of this function goes here
-%   Detailed explanation goes here
+%INITIALIZE_PARTICLES Inicializa las partículas en el mapa
 particles = zeros(N_particles, 3);
 
 x_limits = map.XWorldLimits;

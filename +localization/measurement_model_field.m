@@ -1,7 +1,14 @@
 function weights = measurement_model_field(map, particles, ranges, angles)
-%MEASUREMENT_MODEL_FIELD Summary of this function goes here
-%   Detailed explanation goes here
-sigma = 1.1; %0.9
+%MEASUREMENT_MODEL_FIELD Calcula el peso de las partículas
+%   Para cada partícula se simulan los puntos de impacto de sus rayos según
+%   las mediciones del lidar, estos se colocan sobre un distance map que
+%   contiene la información de la distancia de cada pixel al obstáculo más
+%   cercano.
+%   Los pesos se obtienen combinando las distancias de todos los rayos de
+%   cada partícula. Cuanto más cerca de un obstáculo caen sus rayos mayor
+%   peso tendrá la partícula.
+
+sigma = 1.1;
 [distance_map, occupancy_map] = localization.create_distance_map(map);
 
 N_particles = size(particles, 1);
@@ -58,20 +65,13 @@ final_mask(grid_mask) = non_gray_area(linear_index);
 % Todo lo que no cumpla con ambas condiciones se ignora
 dist_matrix(~final_mask) = NaN;
 
-% % Ahora calculo los pesos según la distancia de los rayos a un obstáculo
-% log_w = -0.5 * mean((dist_matrix/sigma).^2, 2, 'omitnan');
-% 
-% % log_w = log_w - max(log_w);
-% weights = exp(log_w);
-% weights = weights / sum(weights);
-
+% Ahora calculo los pesos según la distancia de los rayos a un obstáculo
+% Se agrega un mínimo para evitar muchos pesos en 0
 likelihoods = 0.99*exp(-0.5 * (dist_matrix / sigma).^2) + 0.01;
 likelihoods(isnan(likelihoods)) = 0; 
 
 % Se normalizan los pesos para que sumen 1
 weights_vector = sum(likelihoods, 2);
-% disp('weights');
-% disp([min(weights_vector) max(weights_vector)]);
 weights = weights_vector / sum(weights_vector); 
 
 end

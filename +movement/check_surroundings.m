@@ -1,7 +1,8 @@
 function state = check_surroundings(ranges, move_count, is_mapping)
-%CHECK_SURROUNDINGS Summary of this function goes here
-%   Detailed explanation goes here
+%CHECK_SURROUNDINGS Determina la presencia de obstáculos y define el estado
+%para las acciones de movimiento
 
+% Parámetros distintos según si está localizando o mapeando
 if is_mapping
     distance_front = 0.5;
     distance_side = 0.8;
@@ -12,6 +13,7 @@ else
     percentage = 0.1;
 end
 
+% Medición central del lidar
 centro = ceil(length(ranges)/2);
 N = ceil(length(ranges)*percentage);
 
@@ -33,23 +35,5 @@ else
     end
 end
 
-
-% if any(ranges(centro-N:centro+N) < distance)
-%     state = "Cuidado";
-% else
-%     if any(ranges(1:N) < distance)
-%         state = "ParedDer";
-%     else
-%         if any(ranges(end-N:end) < distance)
-%             state = "ParedIzq";
-%         else
-%             if (move_count >= 0 && move_count <=200)
-%                 state = "Giro360";
-%             else
-%                 state = "Normal";
-%             end
-%         end
-%     end
-% end
 end
 
